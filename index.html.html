@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinContent AI — LinkedIn Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #0f1525;
+  --bg3: #141c30;
+  --surface: #1a2340;
+  --surface2: #1f2a4a;
+  --border: rgba(99,130,255,0.15);
+  --border2: rgba(99,130,255,0.08);
+  --blue: #6382ff;
+  --blue2: #4a6af0;
+  --teal: #00d4aa;
+  --gold: #f5b842;
+  --red: #ff5e7e;
+  --text: #e8eeff;
+  --text2: #8896bb;
+  --text3: #5a6785;
+  --glow: rgba(99,130,255,0.12);
+  --teal-glow: rgba(0,212,170,0.1);
+  --gold-glow: rgba(245,184,66,0.1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Ambient background */
+body::before {
+  content: '';
+  position: fixed;
+  top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(99,130,255,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,212,170,0.05) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ─── HEADER ─────────────────────────────────── */
+header {
+  position: relative; z-index: 10;
+  padding: 0 32px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border2);
+  background: rgba(10,14,26,0.9);
+  backdrop-filter: blur(12px);
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  display: flex; align-items: center; gap: 10px;
+  letter-spacing: -0.3px;
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.logo span { color: var(--blue); }
+.header-meta {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 12px; color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%; background: var(--teal);
+  box-shadow: 0 0 6px var(--teal);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ─── LAYOUT ─────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 64px);
+  position: relative; z-index: 1;
+}
+
+/* ─── SIDEBAR ─────────────────────────────────── */
+.sidebar {
+  border-right: 1px solid var(--border2);
+  padding: 24px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: rgba(15,21,37,0.6);
+}
+.sidebar-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 500;
+  color: var(--text3); text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 12px 12px 6px;
+}
+.step-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none; background: transparent;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 400;
+  text-align: left; width: 100%;
+  transition: all 0.2s;
+  position: relative;
+}
+.step-btn:hover { background: var(--glow); color: var(--text); }
+.step-btn.active {
+  background: rgba(99,130,255,0.12);
+  color: var(--blue);
+  font-weight: 500;
+}
+.step-btn.active::before {
+  content: '';
+  position: absolute; left: 0; top: 25%; bottom: 25%;
+  width: 2px; border-radius: 1px;
+  background: var(--blue);
+}
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.step-btn.active .step-num {
+  background: var(--blue); border-color: var(--blue);
+  color: white;
+}
+.step-btn.done .step-num {
+  background: var(--teal); border-color: var(--teal);
+  color: #0a0e1a;
+}
+.step-btn.done .step-num::after { content: '✓'; }
+.step-btn.done .step-label { display: none; }
+
+.sidebar-divider {
+  height: 1px; background: var(--border2);
+  margin: 12px 12px;
+}
+
+/* Quick stats */
+.sidebar-stats {
+  margin-top: auto;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+}
+.stat-row {
+  display: flex; justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border2);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: var(--text3); }
+.stat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--teal);
+}
+
+/* ─── MAIN CONTENT ─────────────────────────────────── */
+.main {
+  padding: 32px 40px;
+  overflow-y: auto;
+  max-height: calc(100vh - 64px);
+}
+
+/* ─── STEP PANELS ─────────────────────────────────── */
+.step-panel { display: none; animation: fadeIn 0.3s ease; }
+.step-panel.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+.panel-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.panel-title-group {}
+.panel-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  color: var(--blue); text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 6px;
+}
+.panel-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px; font-weight: 800;
+  color: var(--text); line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+.panel-sub {
+  margin-top: 6px;
+  font-size: 13px; color: var(--text3);
+  font-weight: 300;
+}
+
+/* ─── CARDS ─────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border); }
+.card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.card-icon {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.icon-blue { background: rgba(99,130,255,0.15); }
+.icon-teal { background: rgba(0,212,170,0.12); }
+.icon-gold { background: rgba(245,184,66,0.12); }
+.icon-red { background: rgba(255,94,126,0.12); }
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--text);
+}
+.card-badge {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.badge-blue { background: rgba(99,130,255,0.15); color: var(--blue); }
+.badge-teal { background: rgba(0,212,170,0.12); color: var(--teal); }
+.badge-gold { background: rgba(245,184,66,0.12); color: var(--gold); }
+
+/* ─── FORM ELEMENTS ─────────────────────────────────── */
+label {
+  display: block;
+  font-size: 12px; font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+}
+input[type="text"], textarea, select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+}
+input[type="text"]:focus, textarea:focus, select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(99,130,255,0.1);
+}
+select option { background: var(--bg3); }
+textarea { min-height: 80px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-group { margin-bottom: 16px; }
+
+/* Topic chips */
+.topic-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 20px;
+}
+.topic-chip {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.topic-chip:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: rgba(99,130,255,0.08);
+}
+.topic-chip.selected {
+  border-color: var(--blue);
+  background: rgba(99,130,255,0.15);
+  color: var(--blue);
+  font-weight: 500;
+}
+
+/* Format checkboxes */
+.format-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.format-check {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.format-check:hover { border-color: var(--border); }
+.format-check.checked {
+  border-color: var(--blue);
+  background: rgba(99,130,255,0.08);
+}
+.format-check input[type="checkbox"] { display: none; }
+.check-box {
+  width: 18px; height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; flex-shrink: 0;
+  transition: all 0.2s;
+}
+.format-check.checked .check-box {
+  background: var(--blue); border-color: var(--blue); color: white;
+}
+.check-label { font-size: 13px; color: var(--text2); }
+.format-check.checked .check-label { color: var(--text); font-weight: 500; }
+
+/* ─── BUTTONS ─────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--blue);
+  color: white;
+}
+.btn-primary:hover { background: #7a96ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,130,255,0.3); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-ghost {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+
+.btn-teal {
+  background: linear-gradient(135deg, var(--teal), #00b896);
+  color: #0a0e1a; font-weight: 600;
+}
+.btn-teal:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,170,0.25); }
+.btn-teal:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-sm { padding: 7px 14px; font-size: 12px; }
+.btn-icon { width: 34px; height: 34px; padding: 0; justify-content: center; }
+
+.action-bar {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: 24px;
+}
+
+/* ─── GENERATE BUTTON BIG ─────────────────────────────────── */
+.generate-btn {
+  width: 100%;
+  padding: 18px 28px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6382ff 0%, #00d4aa 100%);
+  color: white;
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  transition: all 0.3s;
+  position: relative; overflow: hidden;
+  letter-spacing: -0.2px;
+  margin-top: 24px;
+}
+.generate-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #7a96ff 0%, #00e8bb 100%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.generate-btn:hover::before { opacity: 1; }
+.generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,130,255,0.25); }
+.generate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+.generate-btn span { position: relative; z-index: 1; }
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.generate-btn.loading .spinner { display: block; }
+.generate-btn.loading .btn-text { display: none; }
+
+/* ─── OUTPUT AREA ─────────────────────────────────── */
+.output-section {
+  margin-top: 28px;
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.output-section.visible { display: block; }
+
+.output-tabs {
+  display: flex; gap: 4px;
+  padding: 4px;
+  background: var(--bg3);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border2);
+  overflow-x: auto;
+}
+.output-tab {
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer;
+  border: none; background: transparent;
+  color: var(--text3);
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.output-tab.active {
+  background: var(--surface2);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.output-tab:hover:not(.active) { color: var(--text2); }
+
+.output-content { display: none; }
+.output-content.active { display: block; }
+
+.output-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 20px 24px;
+  position: relative;
+  font-size: 14px; line-height: 1.7;
+  color: var(--text2);
+  white-space: pre-wrap;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 120px;
+}
+.output-box.loading-box {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+  font-style: italic;
+  flex-direction: column; gap: 12px;
+}
+.loading-dots {
+  display: flex; gap: 6px;
+}
+.loading-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%; background: var(--blue);
+  animation: bounce 1s infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+
+.copy-btn {
+  position: absolute; top: 12px; right: 12px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text3);
+  font-size: 11px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 5px;
+}
+.copy-btn:hover { color: var(--teal); border-color: var(--teal); }
+.copy-btn.copied { color: var(--teal); border-color: var(--teal); background: rgba(0,212,170,0.08); }
+
+.section-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+  font-size: 11px; color: var(--text3);
+  font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1px;
+}
+.section-divider::before, .section-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border2);
+}
+
+/* ─── HASHTAG PILLS ─────────────────────────────────── */
+.hashtag-cloud {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  min-height: 60px;
+}
+.hashtag-pill {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: rgba(99,130,255,0.12);
+  border: 1px solid rgba(99,130,255,0.2);
+  color: var(--blue);
+  font-size: 12px; font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.hashtag-pill:hover { background: rgba(99,130,255,0.2); }
+
+/* ─── HOOKS TABLE ─────────────────────────────────── */
+.hooks-grid {
+  display: grid; gap: 10px;
+}
+.hook-item {
+  padding: 14px 18px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  font-size: 13px; color: var(--text2);
+  line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.hook-item:hover { border-color: var(--border); color: var(--text); }
+.hook-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  color: var(--blue); margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── INFO BANNER ─────────────────────────────────── */
+.info-banner {
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 13px; line-height: 1.5;
+  margin-bottom: 20px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.info-banner.blue { border-color: rgba(99,130,255,0.2); background: rgba(99,130,255,0.06); color: var(--text2); }
+.info-banner.teal { border-color: rgba(0,212,170,0.2); background: rgba(0,212,170,0.06); color: var(--text2); }
+
+/* ─── KPI METRICS ─────────────────────────────────── */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.metric-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px; font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.metric-val.blue { color: var(--blue); }
+.metric-val.teal { color: var(--teal); }
+.metric-val.gold { color: var(--gold); }
+.metric-label { font-size: 11px; color: var(--text3); }
+
+/* ─── TEMPLATE EDITOR ─────────────────────────────────── */
+.template-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.template-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border2);
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg3);
+}
+.template-body { padding: 20px; }
+.template-textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; line-height: 1.7;
+  resize: vertical; min-height: 100px;
+  outline: none;
+}
+.template-textarea:focus { border-color: var(--blue); }
+.placeholder-hint {
+  font-size: 11px; color: var(--text3);
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+
+/* ─── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .metrics-row { grid-template-columns: repeat(2,1fr); }
+  .form-row { grid-template-columns: 1fr; }
+  .format-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">⚡</div>
+    Fin<span>Content</span> AI
+  </div>
+  <div class="header-meta">
+    <div class="status-dot"></div>
+    AI Engine Active
+    <span style="color:var(--border)">|</span>
+    Power BI · Finance · LinkedIn
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Workflow Steps</div>
+
+    <button class="step-btn active" onclick="goStep(1)">
+      <div class="step-num">1</div>
+      <span class="step-label">Topic Identification</span>
+    </button>
+    <button class="step-btn" onclick="goStep(2)">
+      <div class="step-num">2</div>
+      <span class="step-label">Content Formats</span>
+    </button>
+    <button class="step-btn" onclick="goStep(3)">
+      <div class="step-num">3</div>
+      <span class="step-label">Generate Content</span>
+    </button>
+    <button class="step-btn" onclick="goStep(4)">
+      <div class="step-num">4</div>
+      <span class="step-label">Image Prompts</span>
+    </button>
+    <button class="step-btn" onclick="goStep(5)">
+      <div class="step-num">5</div>
+      <span class="step-label">Hashtag Strategy</span>
+    </button>
+    <button class="step-btn" onclick="goStep(6)">
+      <div class="step-num">6</div>
+      <span class="step-label">Engagement Hooks</span>
+    </button>
+    <button class="step-btn" onclick="goStep(7)">
+      <div class="step-num">7</div>
+      <span class="step-label">Templates Editor</span>
+    </button>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-stats">
+      <div class="sidebar-label" style="padding:0 0 8px">Session Stats</div>
+      <div class="stat-row">
+        <span class="stat-label">Posts Generated</span>
+        <span class="stat-val" id="stat-posts">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Topics Used</span>
+        <span class="stat-val" id="stat-topics">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Formats Active</span>
+        <span class="stat-val" id="stat-formats">4</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Hashtags</span>
+        <span class="stat-val">30</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 1: Topic Identification                        -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel active" id="panel-1">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 01 of 07</div>
+          <div class="panel-title">Topic Identification</div>
+          <div class="panel-sub">Choose a trending finance/Power BI topic or write your own</div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-val blue">5</div>
+          <div class="metric-label">Topic Clusters</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val teal">7</div>
+          <div class="metric-label">Content Formats</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val gold">30</div>
+          <div class="metric-label">Hashtags</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" style="color:var(--red)">27</div>
+          <div class="metric-label">Hooks & CTAs</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-blue">📊</div>
+          <div class="card-title">Trending Topic Clusters</div>
+          <span class="card-badge badge-blue">Power BI + Finance</span>
+        </div>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:16px;">Click a topic to select it, or type your own below.</p>
+        <div class="topic-chips" id="topic-chips">
+          <button class="topic-chip" onclick="selectChip(this, 'Power BI for Budget vs Actual Analysis')">Power BI Budget vs Actual</button>
+          <button class="topic-chip" onclick="selectChip(this, 'CFO Financial KPI Dashboards in Power BI')">CFO KPI Dashboards</button>
+          <button class="topic-chip" onclick="selectChip(this, 'Financial Forecasting & Trend Analysis with Power BI')">Forecasting & Trends</button>
+          <button class="topic-chip" onclick="selectChip(this, 'Accounting Automation with Power BI & Power Automate')">Accounting Automation</button>
+          <button class="topic-chip" onclick="selectChip(this, 'Financial Storytelling Using Power BI Data Visualization')">Financial Storytelling</button>
+          <button class="topic-chip" onclick="selectChip(this, 'DAX Measures Every Finance Analyst Must Know')">DAX for Finance</button>
+          <button class="topic-chip" onclick="selectChip(this, 'Month-End Close Automation with Power BI')">Month-End Close</button>
+          <button class="topic-chip" onclick="selectChip(this, 'Excel vs Power BI for Financial Reporting')">Excel vs Power BI</button>
+          <button class="topic-chip" onclick="selectChip(this, 'FP&A Dashboard Design Best Practices')">FP&A Dashboard Design</button>
+          <button class="topic-chip" onclick="selectChip(this, 'Cash Flow Visualization in Power BI')">Cash Flow Visualization</button>
+        </div>
+
+        <div class="form-group">
+          <label>Your Topic (or edit the selected one)</label>
+          <input type="text" id="topic-input" placeholder="e.g. Using Power BI for Budget vs Actual variance analysis..." />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Target Audience</label>
+            <select id="audience-select">
+              <option>CFOs & Finance Directors</option>
+              <option>Financial Analysts</option>
+              <option>Accountants</option>
+              <option>FP&A Professionals</option>
+              <option>Power BI Developers</option>
+              <option>Business Analysts</option>
+              <option>Finance Managers</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Content Tone</label>
+            <select id="tone-select">
+              <option>Professional & Insightful</option>
+              <option>Data-Driven & Technical</option>
+              <option>Conversational & Relatable</option>
+              <option>Thought Leadership</option>
+              <option>Educational & Detailed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="goStep(2)">Next: Choose Formats →</button>
+        <span style="font-size:12px;color:var(--text3)">Select a topic to continue</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 2: Content Format Selection                    -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel" id="panel-2">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 02 of 07</div>
+          <div class="panel-title">Content Format Selection</div>
+          <div class="panel-sub">Choose which LinkedIn formats to generate</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-teal">📝</div>
+          <div class="card-title">Select Formats to Generate</div>
+          <span class="card-badge badge-teal">All selected by default</span>
+        </div>
+
+        <div class="format-grid" id="format-grid">
+          <label class="format-check checked" onclick="toggleFormat(this, 'short')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Short-Form Post</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">100–150 words · Quick impact</div>
+            </div>
+          </label>
+          <label class="format-check checked" onclick="toggleFormat(this, 'long')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Long-Form Post</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">400–600 words · Deep insight</div>
+            </div>
+          </label>
+          <label class="format-check checked" onclick="toggleFormat(this, 'relatable')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Relatable Finance Post</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">POV/Story · High engagement</div>
+            </div>
+          </label>
+          <label class="format-check checked" onclick="toggleFormat(this, 'educational')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Educational Content</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">Cheat sheets · How-to guides</div>
+            </div>
+          </label>
+          <label class="format-check checked" onclick="toggleFormat(this, 'carousel')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Carousel Post Script</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">8-slide sequence · Viral reach</div>
+            </div>
+          </label>
+          <label class="format-check checked" onclick="toggleFormat(this, 'meme')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Meme Concept</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">Corporate humor · Shareable</div>
+            </div>
+          </label>
+          <label class="format-check checked" onclick="toggleFormat(this, 'insight')">
+            <input type="checkbox" checked>
+            <div class="check-box">✓</div>
+            <div>
+              <div class="check-label">Quick Data Insight</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">Stats & numbers · Authority</div>
+            </div>
+          </label>
+          <label class="format-check" onclick="toggleFormat(this, 'poll')">
+            <input type="checkbox">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">Poll Post</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">4-option LinkedIn poll</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Next: Generate Content →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 3: Generate Content                            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel" id="panel-3">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 03 of 07</div>
+          <div class="panel-title">Generate Content</div>
+          <div class="panel-sub">AI-powered LinkedIn content for every selected format</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-blue">⚡</div>
+          <div class="card-title">Ready to Generate</div>
+        </div>
+        <div class="info-banner blue">
+          <span>ℹ️</span>
+          <span>Topic: <strong id="confirm-topic" style="color:var(--text)">Not selected</strong> · Audience: <strong id="confirm-audience" style="color:var(--text)">—</strong> · Tone: <strong id="confirm-tone" style="color:var(--text)">—</strong></span>
+        </div>
+        <button class="generate-btn" id="gen-btn" onclick="generateContent()">
+          <div class="spinner"></div>
+          <span class="btn-text">⚡ Generate All LinkedIn Content</span>
+        </button>
+      </div>
+
+      <div class="output-section" id="output-section">
+        <div class="section-divider">Generated Output</div>
+        <div class="output-tabs" id="output-tabs"></div>
+        <div id="output-contents"></div>
+      </div>
+
+      <div class="action-bar" style="margin-top:24px">
+        <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(4)">Next: Image Prompts →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 4: Image Prompts                              -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel" id="panel-4">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 04 of 07</div>
+          <div class="panel-title">Nano Bana Image Prompts</div>
+          <div class="panel-sub">AI image generation prompts for each content format</div>
+        </div>
+      </div>
+
+      <div class="info-banner teal">
+        <span>🎨</span>
+        <span>These prompts are optimized for Nano Bana AI. Copy and paste directly into the generator.</span>
+      </div>
+
+      <div id="image-prompts-container">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-teal">🖼️</div>
+            <div class="card-title">Professional Dashboard Visualization</div>
+            <span class="card-badge badge-teal">Short-Form Post</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Use for: Short-form & Long-form posts</div>
+          <div class="output-box" style="font-size:13px;line-height:1.8;" id="img-prompt-1">
+Generate content in Step 3 first, then image prompts will be tailored to your topic automatically. Or click the button below to generate generic image prompts.
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyText('img-prompt-1', this)">📋 Copy Prompt</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-gold">🎭</div>
+            <div class="card-title">Corporate Meme / Relatable Scene</div>
+            <span class="card-badge badge-gold">Meme & Relatable</span>
+          </div>
+          <div class="output-box" style="font-size:13px;line-height:1.8;" id="img-prompt-2">
+Meme-style image prompt will appear here after generation.
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyText('img-prompt-2', this)">📋 Copy Prompt</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-blue">📈</div>
+            <div class="card-title">Educational / Carousel Cover</div>
+            <span class="card-badge badge-blue">Educational</span>
+          </div>
+          <div class="output-box" style="font-size:13px;line-height:1.8;" id="img-prompt-3">
+Educational carousel cover image prompt will appear here.
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyText('img-prompt-3', this)">📋 Copy Prompt</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="img-gen-btn" onclick="generateImagePrompts()" style="margin-top:0">
+        <div class="spinner"></div>
+        <span class="btn-text">🎨 Generate Image Prompts for My Topic</span>
+      </button>
+
+      <div class="action-bar" style="margin-top:24px">
+        <button class="btn btn-ghost" onclick="goStep(3)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(5)">Next: Hashtags →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 5: Hashtag Strategy                            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel" id="panel-5">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 05 of 07</div>
+          <div class="panel-title">Hashtag Strategy</div>
+          <div class="panel-sub">30 LinkedIn-optimized hashtags — click to copy any</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-blue">🏷️</div>
+          <div class="card-title">Power BI Core</div>
+          <span class="card-badge badge-blue">Use 1–2 per post</span>
+        </div>
+        <div class="hashtag-cloud">
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#PowerBI</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#PowerBIDashboard</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#PowerBIDesktop</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#PowerBITips</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#DAX</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#MicrosoftPowerBI</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-teal">📊</div>
+          <div class="card-title">Financial Analysis</div>
+          <span class="card-badge badge-teal">High engagement</span>
+        </div>
+        <div class="hashtag-cloud">
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinancialAnalysis</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinancialAnalytics</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FPandA</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinancialModeling</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#DataDrivenFinance</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinanceDashboard</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-gold">🧾</div>
+          <div class="card-title">Accounting</div>
+          <span class="card-badge badge-gold">Professional community</span>
+        </div>
+        <div class="hashtag-cloud">
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(245,184,66,0.1);border-color:rgba(245,184,66,0.2);color:var(--gold)">#Accounting</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(245,184,66,0.1);border-color:rgba(245,184,66,0.2);color:var(--gold)">#AccountingInsights</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(245,184,66,0.1);border-color:rgba(245,184,66,0.2);color:var(--gold)">#FinanceAutomation</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(245,184,66,0.1);border-color:rgba(245,184,66,0.2);color:var(--gold)">#ModernAccounting</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(245,184,66,0.1);border-color:rgba(245,184,66,0.2);color:var(--gold)">#AccountingTech</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-blue">👔</div>
+          <div class="card-title">CFO & Leadership</div>
+        </div>
+        <div class="hashtag-cloud">
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#CFO</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#CFODashboard</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#FinanceLeadership</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#FinanceTransformation</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)">#FinanceStrategy</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-teal">🔍</div>
+          <div class="card-title">Business Intelligence & Career</div>
+        </div>
+        <div class="hashtag-cloud">
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#BusinessIntelligence</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#DataVisualization</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinancialKPI</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinanceProfessionals</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FutureOfFinance</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinanceCareer</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#DataAnalytics</div>
+          <div class="hashtag-pill" onclick="copyHashtag(this)" style="background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.2);color:var(--teal)">#FinTech</div>
+        </div>
+      </div>
+
+      <div class="info-banner blue" style="margin-top:16px">
+        <span>💡</span>
+        <span><strong>Rule:</strong> Use exactly 3–5 hashtags per post. Always combine 1 Power BI + 1 Finance/Accounting + 1 broader reach tag. Click any hashtag to copy it.</span>
+      </div>
+
+      <div class="action-bar" style="margin-top:16px">
+        <button class="btn btn-ghost" onclick="goStep(4)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(6)">Next: Engagement Hooks →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 6: Engagement Hooks                           -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel" id="panel-6">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 06 of 07</div>
+          <div class="panel-title">Engagement Hooks</div>
+          <div class="panel-sub">27 proven hooks, questions, and CTAs — click any to copy</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-blue">🎯</div>
+          <div class="card-title">Opening Hooks</div>
+          <span class="card-badge badge-blue">Use as first line of post</span>
+        </div>
+        <div class="hooks-grid">
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">01</div>
+            <div>I built 200+ Power BI finance dashboards. Here's the one mistake I see every time.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">02</div>
+            <div>Nobody tells finance teams this about Power BI. Until now.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">03</div>
+            <div>Your CFO doesn't want more data. They want faster decisions. Here's the difference.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">04</div>
+            <div>3 years ago I was spending 40 hours a month on reports that Power BI now does in 4.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">05</div>
+            <div>If your budget vs actual report takes more than 1 hour to produce, read this.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">06</div>
+            <div>Stop building dashboards. Start building decisions. Here's how.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">07</div>
+            <div>Hot take: Excel is not the problem. How you're using it is.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">08</div>
+            <div>The finance team that will thrive in 2025 looks nothing like the one thriving in 2020.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num">09</div>
+            <div>I used to think Power BI was too technical for accountants. I was completely wrong.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-teal">❓</div>
+          <div class="card-title">Engagement Questions</div>
+          <span class="card-badge badge-teal">Place at end of post</span>
+        </div>
+        <div class="hooks-grid">
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--teal)">Q1</div>
+            <div>What's the biggest time-waster in your current financial reporting process?</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--teal)">Q2</div>
+            <div>Power BI or Excel — what does your team use for financial dashboards and why?</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--teal)">Q3</div>
+            <div>If you had to name the ONE KPI your CFO checks first, what would it be?</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--teal)">Q4</div>
+            <div>How many days does your month-end close currently take? Be honest — no judgment.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--teal)">Q5</div>
+            <div>What would you do with 20 extra hours a month if reporting was fully automated?</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--teal)">Q6</div>
+            <div>Tag a finance professional who needs to see this. They'll thank you later.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon icon-gold">📢</div>
+          <div class="card-title">Call-to-Action Lines</div>
+          <span class="card-badge badge-gold">Before hashtags</span>
+        </div>
+        <div class="hooks-grid">
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--gold)">C1</div>
+            <div>Save this post. You'll want to reference it during your next budget cycle.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--gold)">C2</div>
+            <div>Follow me for weekly Power BI finance tutorials that skip the theory and go straight to application.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--gold)">C3</div>
+            <div>Comment 'TEMPLATE' below and I'll send you the Power BI report template we used for this.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--gold)">C4</div>
+            <div>Repost this if you know a finance professional who's still doing this manually.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--gold)">C5</div>
+            <div>This is post 1 of a 5-part series on Power BI for finance. Follow to catch all 5.</div>
+          </div>
+          <div class="hook-item" onclick="copyHook(this)">
+            <div class="hook-num" style="color:var(--gold)">C6</div>
+            <div>Drop your biggest Power BI question in the comments. I answer every one.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-ghost" onclick="goStep(5)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(7)">Next: Template Editor →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- STEP 7: Template Editor                            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="step-panel" id="panel-7">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <div class="panel-eyebrow">Step 07 of 07</div>
+          <div class="panel-title">Templates Editor</div>
+          <div class="panel-sub">Fill in reusable templates — edit the [placeholders] to make them yours</div>
+        </div>
+      </div>
+
+      <div class="template-card">
+        <div class="template-header">
+          <div class="card-icon icon-blue" style="width:28px;height:28px;font-size:13px">✏️</div>
+          <div class="card-title" style="font-size:13px">Short-Form Template</div>
+          <span class="card-badge badge-blue" style="margin-left:auto">100–150 words</span>
+        </div>
+        <div class="template-body">
+          <textarea class="template-textarea" rows="8">[YOUR HOOK — bold statement or surprising insight]
+
+Most [AUDIENCE, e.g. finance teams] still [OLD METHOD]. [DESCRIBE THE PROBLEM briefly].
+
+Here's what I did instead:
+→ [Step 1]
+→ [Step 2]
+→ [Step 3]
+→ [Result]
+
+Now [OUTCOME — what changed, what's better].
+
+[DATA-DRIVEN STATEMENT OR PRINCIPLE]
+
+[ENGAGEMENT QUESTION]?
+
+#PowerBI #FinancialAnalysis #[YourHashtag]</textarea>
+          <div class="placeholder-hint">Replace all [BRACKETS] with your specific content. Keep post between 100–150 words.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyTextarea(this)">📋 Copy Template</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearTemplate(this)">🗑 Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="template-card">
+        <div class="template-header">
+          <div class="card-icon icon-teal" style="width:28px;height:28px;font-size:13px">📄</div>
+          <div class="card-title" style="font-size:13px">Long-Form Template</div>
+          <span class="card-badge badge-teal" style="margin-left:auto">400–600 words</span>
+        </div>
+        <div class="template-body">
+          <textarea class="template-textarea" rows="14">[PERSONAL STORY HOOK — time, number, before/after]
+
+THE PROBLEM
+[Describe the exact pain point in 2–3 sentences. Be specific. Name the old method.]
+
+THE SOLUTION
+Here's the [NUMBER]-step process we used:
+
+Step 1 — [PHASE NAME]
+[1–2 sentence description]
+
+Step 2 — [PHASE NAME]
+[1–2 sentence description]
+
+Step 3 — [PHASE NAME]
+[1–2 sentence description]
+
+Step 4 — [PHASE NAME]
+[1–2 sentence description]
+
+THE RESULTS
+After implementation:
+→ [Metric 1 with % or time improvement]
+→ [Metric 2 with specific number]
+→ [Qualitative improvement]
+
+THE TAKEAWAY
+[1–2 sentence insight or principle]
+
+[VULNERABILITY + INVITATION LINE]
+
+[CTA LINE]
+
+#PowerBI #FinancialAnalysis #CFO #DataDrivenFinance #Accounting</textarea>
+          <div class="placeholder-hint">Target 400–600 words. Include specific numbers and outcomes for credibility.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyTextarea(this)">📋 Copy Template</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearTemplate(this)">🗑 Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="template-card">
+        <div class="template-header">
+          <div class="card-icon icon-gold" style="width:28px;height:28px;font-size:13px">😄</div>
+          <div class="card-title" style="font-size:13px">Relatable / Meme Template</div>
+          <span class="card-badge badge-gold" style="margin-left:auto">High engagement</span>
+        </div>
+        <div class="template-body">
+          <textarea class="template-textarea" rows="10">POV: [RELATABLE FINANCE SITUATION]
+
+Before [TOOL/METHOD]:
+[Describe chaotic/manual state — be funny, specific, painfully relatable]
+
+After [TOOL/METHOD]:
+[Describe calm, automated, effortless state]
+
+The glow-up is real.
+
+— OR —
+
+Every [FINANCE TASK] goes through these stages:
+Version 1: [Overcomplicated extreme]
+Version 2: [Slightly better but still messy]
+Version 3: [Getting closer]
+Version 4: [PERFECT — the simple answer]
+
+[LESSON OR PRINCIPLE]
+
+What's your [FINANCE TASK] story? Drop it below 👇
+
+#PowerBI #Accounting #FinanceProfessionals</textarea>
+          <div class="placeholder-hint">Relatable posts drive 3–5x more comments. Keep it real and specific to finance life.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyTextarea(this)">📋 Copy Template</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearTemplate(this)">🗑 Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="template-card">
+        <div class="template-header">
+          <div class="card-icon icon-blue" style="width:28px;height:28px;font-size:13px">🎠</div>
+          <div class="card-title" style="font-size:13px">Carousel Post Script Template</div>
+          <span class="card-badge badge-blue" style="margin-left:auto">8 slides</span>
+        </div>
+        <div class="template-body">
+          <textarea class="template-textarea" rows="18">SLIDE 1 (COVER)
+Title: [BOLD CONTRARIAN OR PROMISE HEADLINE]
+Sub: [TOPIC — what this carousel teaches]
+Visual: [Describe cover image: colors, style, chart element]
+
+SLIDE 2 — The Problem
+[3 bullet pain points of current manual/old approach]
+
+SLIDE 3 — [Key Point / Visual #1]
+Content: [Core insight, tip, or DAX formula]
+Visual: [Describe chart/visual type]
+
+SLIDE 4 — [Key Point / Visual #2]
+Content: [Second insight or step]
+Visual: [Chart or concept visual]
+
+SLIDE 5 — [Key Point / Visual #3]
+Content: [Third insight or comparison]
+Visual: [Before/after or side-by-side visual]
+
+SLIDE 6 — [Key Point / Visual #4]
+Content: [Advanced tip or case study result]
+Visual: [Data visualization]
+
+SLIDE 7 — Key Takeaway
+[1 memorable principle or rule]
+Visual: [Strong typographic slide]
+
+SLIDE 8 — CTA
+[Your follow/comment/save call-to-action]
+Visual: [Your branding + headshot placeholder]</textarea>
+          <div class="placeholder-hint">Each slide = one idea. Cover grabs attention. Slides 2–7 deliver value. Slide 8 converts.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyTextarea(this)">📋 Copy Template</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearTemplate(this)">🗑 Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-ghost" onclick="goStep(6)">← Back</button>
+        <button class="btn btn-teal" onclick="goStep(1)">🔄 Start New Topic</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── STATE ─────────────────────────────────────────────────
+let currentStep = 1;
+let postsGenerated = 0;
+let topicsUsed = 0;
+let selectedFormats = ['short','long','relatable','educational','carousel','meme','insight'];
+const FORMAT_LABELS = {
+  short: '📝 Short-Form',
+  long: '📄 Long-Form',
+  relatable: '😄 Relatable',
+  educational: '🎓 Educational',
+  carousel: '🎠 Carousel',
+  meme: '😂 Meme',
+  insight: '📊 Data Insight',
+  poll: '📊 Poll'
+};
+
+// ─── NAVIGATION ─────────────────────────────────────────────
+function goStep(n) {
+  if (n === 3) {
+    const topic = document.getElementById('topic-input').value.trim();
+    const audience = document.getElementById('audience-select').value;
+    const tone = document.getElementById('tone-select').value;
+    document.getElementById('confirm-topic').textContent = topic || 'No topic entered';
+    document.getElementById('confirm-audience').textContent = audience;
+    document.getElementById('confirm-tone').textContent = tone;
+  }
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-btn').forEach((b, i) => {
+    b.classList.remove('active');
+    if (i + 1 < n) b.classList.add('done'); else b.classList.remove('done');
+  });
+  document.getElementById(`panel-${n}`).classList.add('active');
+  document.querySelectorAll('.step-btn')[n - 1].classList.add('active');
+  currentStep = n;
+  document.querySelector('.main').scrollTo(0, 0);
+}
+
+// ─── TOPIC CHIPS ─────────────────────────────────────────────
+function selectChip(el, topic) {
+  document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('topic-input').value = topic;
+}
+
+// ─── FORMAT TOGGLES ─────────────────────────────────────────
+function toggleFormat(el, fmt) {
+  el.classList.toggle('checked');
+  const isChecked = el.classList.contains('checked');
+  el.querySelector('.check-box').textContent = isChecked ? '✓' : '';
+  if (isChecked) {
+    if (!selectedFormats.includes(fmt)) selectedFormats.push(fmt);
+  } else {
+    selectedFormats = selectedFormats.filter(f => f !== fmt);
+  }
+  document.getElementById('stat-formats').textContent = selectedFormats.length;
+}
+
+// ─── MAIN CONTENT GENERATION ─────────────────────────────────
+async function generateContent() {
+  const topic = document.getElementById('topic-input').value.trim();
+  const audience = document.getElementById('audience-select').value;
+  const tone = document.getElementById('tone-select').value;
+  if (!topic) { alert('Please enter or select a topic first.'); return; }
+  if (selectedFormats.length === 0) { alert('Please select at least one content format.'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.classList.add('loading'); btn.disabled = true;
+
+  const outputSection = document.getElementById('output-section');
+  const tabsEl = document.getElementById('output-tabs');
+  const contentsEl = document.getElementById('output-contents');
+  outputSection.classList.add('visible');
+  tabsEl.innerHTML = '';
+  contentsEl.innerHTML = '';
+
+  // Build tabs
+  selectedFormats.forEach((fmt, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'output-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = FORMAT_LABELS[fmt] || fmt;
+    tab.onclick = () => switchTab(fmt);
+    tab.id = `tab-${fmt}`;
+    tabsEl.appendChild(tab);
+
+    const content = document.createElement('div');
+    content.className = 'output-content' + (i === 0 ? ' active' : '');
+    content.id = `content-${fmt}`;
+    content.innerHTML = `
+      <div class="output-box loading-box" id="box-${fmt}">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+        <div>Generating ${FORMAT_LABELS[fmt]}...</div>
+      </div>`;
+    contentsEl.appendChild(content);
+  });
+
+  // Generate each format sequentially
+  for (const fmt of selectedFormats) {
+    const box = document.getElementById(`box-${fmt}`);
+    try {
+      const text = await callClaude(buildPrompt(topic, audience, tone, fmt));
+      box.classList.remove('loading-box');
+      box.style.flexDirection = 'unset';
+      box.innerHTML = `<button class="copy-btn" onclick="copyText('box-${fmt}', this)">📋 Copy</button>` + escapeHtml(text);
+      postsGenerated++;
+      document.getElementById('stat-posts').textContent = postsGenerated;
+    } catch(e) {
+      box.classList.remove('loading-box');
+      box.innerHTML = `<span style="color:var(--red)">Error generating content. Check your API connection and try again.</span>`;
+    }
+  }
+
+  topicsUsed++;
+  document.getElementById('stat-topics').textContent = topicsUsed;
+  btn.classList.remove('loading'); btn.disabled = false;
+
+  // Update image prompt boxes with the topic
+  updateImagePromptPlaceholders(topic);
+}
+
+function buildPrompt(topic, audience, tone, format) {
+  const fmtInstructions = {
+    short: `Write a LinkedIn SHORT-FORM post (exactly 100–150 words) about: "${topic}".
+Target audience: ${audience}. Tone: ${tone}.
+Requirements:
+- Start with a powerful single-sentence hook (the first line must stop the scroll)
+- Use line breaks for readability (no dense paragraphs)
+- Include 3–5 bullet points or short steps
+- End with ONE engaging question to drive comments
+- Include 3–5 relevant hashtags at the bottom
+- SEO keywords to weave in naturally: Financial Analysis, Power BI Dashboard, Data-Driven Finance
+Output ONLY the post text, nothing else.`,
+
+    long: `Write a LinkedIn LONG-FORM post (400–600 words) about: "${topic}".
+Target audience: ${audience}. Tone: ${tone}.
+Structure:
+1. Personal story hook (first 2 lines — make it relatable and specific)
+2. THE PROBLEM section (2–3 sentences, name the pain clearly)
+3. THE SOLUTION section (4–6 numbered steps with bold headers)
+4. THE RESULTS section (3–4 bullet points with specific metrics)
+5. THE TAKEAWAY (1–2 sentence principle)
+6. Closing line (vulnerability + invitation)
+7. CTA line (save/follow/comment)
+8. 5 hashtags
+Tone: ${tone}. Include SEO keywords: Power BI Dashboard, CFO Dashboard, Financial Analytics, Business Intelligence for Finance.
+Output ONLY the post text.`,
+
+    relatable: `Write a RELATABLE FINANCE CONTENT post for LinkedIn about: "${topic}".
+Target audience: ${audience}.
+Format: Use a "POV:" or "Every [X] goes through these stages:" structure.
+- Make it painfully specific to finance/accounting professional life
+- Use before/after or version 1→4 evolution format
+- Be slightly funny but professional
+- End with a question inviting comments
+- 3 hashtags max
+- 80–120 words total
+Output ONLY the post text.`,
+
+    educational: `Write an EDUCATIONAL CONTENT post for LinkedIn about: "${topic}".
+Target audience: ${audience}. Tone: ${tone}.
+Format:
+- Title in ALL CAPS (the topic as a cheat sheet or guide name)
+- 5–8 key points, formulas, or steps with clear labels
+- Each point should be scannable (bold label + 1 sentence explanation)
+- Include at least 2 specific Power BI DAX formulas or technical tips if relevant
+- End with a takeaway principle
+- CTA: "Save this for reference"
+- 4–5 hashtags
+- 150–250 words
+Output ONLY the post text.`,
+
+    carousel: `Write a CAROUSEL POST SCRIPT for LinkedIn about: "${topic}".
+Target audience: ${audience}.
+Format — write all 8 slides:
+SLIDE 1 (COVER): Bold headline + subtitle + visual description
+SLIDE 2 (PROBLEM): 3 bullet pain points
+SLIDE 3–6 (VALUE): One key insight, tip, or step per slide with a visual description note in brackets
+SLIDE 7 (TAKEAWAY): One memorable principle
+SLIDE 8 (CTA): Follow/save/comment call to action + caption for the full post
+Each slide: title + 2–4 lines of content + [Visual: brief description]
+Output ONLY the carousel script.`,
+
+    meme: `Write a MEME CONCEPT + description for a LinkedIn finance meme post about: "${topic}".
+Provide:
+1. MEME FORMAT: (e.g., two-panel, Drake meme, expectation vs reality, stages)
+2. PANEL DESCRIPTIONS: Describe each panel visually (characters, what's on screen, body language)
+3. TEXT OVERLAY: The exact text on each panel
+4. POST CAPTION: 2–3 lines + 1 question + 3 hashtags
+Keep it professional humor — relatable to accountants/finance analysts, not offensive.
+Output ONLY the meme concept and caption.`,
+
+    insight: `Write a QUICK DATA INSIGHT post for LinkedIn about: "${topic}".
+Target audience: ${audience}.
+Format:
+- Headline stat or comparison (make it striking)
+- 4–6 data points formatted as: → [Metric]: [Value/improvement]
+- 1–2 sentence context/explanation
+- 1 question to spark debate
+- 3–4 hashtags
+- 80–120 words
+The numbers should be realistic estimates for Power BI / finance automation benefits.
+Output ONLY the post text.`,
+
+    poll: `Write a LINKEDIN POLL POST about: "${topic}".
+Include:
+- 2–3 line intro (why this matters)
+- Poll question (clear, debatable)
+- 4 poll options (mutually exclusive, cover the spectrum)
+- 1–2 line follow-up asking people to comment their reason
+- 3 hashtags
+Output ONLY the poll post text.`
+  };
+
+  return fmtInstructions[format] || `Write a LinkedIn post about: "${topic}". Audience: ${audience}. Tone: ${tone}.`;
+}
+
+async function callClaude(prompt) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  const data = await response.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+// ─── IMAGE PROMPTS ─────────────────────────────────────────
+async function generateImagePrompts() {
+  const topic = document.getElementById('topic-input').value.trim() || 'Power BI Financial Dashboard';
+  const btn = document.getElementById('img-gen-btn');
+  btn.classList.add('loading'); btn.disabled = true;
+
+  const prompts = [
+    { id: 'img-prompt-1', type: 'Professional Dashboard Visualization (Short/Long Post)', style: 'professional corporate illustration' },
+    { id: 'img-prompt-2', type: 'Meme/Relatable Scene (Before & After)', style: 'corporate humor split-panel illustration' },
+    { id: 'img-prompt-3', type: 'Educational/Carousel Cover (Clean & Bold)', style: 'editorial data visualization poster' }
+  ];
+
+  for (const p of prompts) {
+    const box = document.getElementById(p.id);
+    box.textContent = 'Generating...';
+    try {
+      const prompt = await callClaude(`Generate a detailed Nano Bana AI image prompt for a LinkedIn post image about: "${topic}".
+Image type: ${p.type}
+Style direction: ${p.style}
+
+Output a structured prompt with these exact labeled fields:
+STYLE: [art style, rendering technique]
+SCENE: [setting, environment, background]
+CHARACTERS: [who is shown, what they're doing, diversity/representation notes]
+COLORS: [specific hex colors or color names, dominant palette]
+VISUAL ELEMENTS: [charts, dashboards, Power BI visuals, laptops, data, specific UI elements]
+MOOD & LIGHTING: [emotional tone, lighting description]
+LINKEDIN FORMAT: [16:9 or 1:1, margins, text-safe areas]
+DO NOT INCLUDE: [what to avoid]
+
+Make it specific, visual, and optimized for a professional LinkedIn audience. Output ONLY the structured prompt.`);
+      box.textContent = prompt;
+    } catch(e) {
+      box.textContent = 'Error generating prompt. Please try again.';
+    }
+  }
+
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+function updateImagePromptPlaceholders(topic) {
+  const boxes = ['img-prompt-1', 'img-prompt-2', 'img-prompt-3'];
+  boxes.forEach(id => {
+    const box = document.getElementById(id);
+    if (box.textContent.includes('Generate content in Step 3') || box.textContent.includes('will appear here')) {
+      box.textContent = `Click "Generate Image Prompts for My Topic" button below to create Nano Bana prompts for: "${topic}"`;
+    }
+  });
+}
+
+// ─── TAB SWITCHING ─────────────────────────────────────────
+function switchTab(fmt) {
+  document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.output-content').forEach(c => c.classList.remove('active'));
+  const tab = document.getElementById(`tab-${fmt}`);
+  const content = document.getElementById(`content-${fmt}`);
+  if (tab) tab.classList.add('active');
+  if (content) content.classList.add('active');
+}
+
+// ─── COPY UTILITIES ─────────────────────────────────────────
+function copyText(id, btn) {
+  const box = document.getElementById(id);
+  const text = box.innerText.replace(/^📋 Copy\n?/, '');
+  navigator.clipboard.writeText(text).then(() => {
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
+function copyHashtag(el) {
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const orig = el.textContent;
+    el.textContent = '✓ Copied';
+    setTimeout(() => el.textContent = orig, 1500);
+  });
+}
+
+function copyHook(el) {
+  const text = el.querySelector('div:last-child').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    el.style.borderColor = 'var(--teal)';
+    el.style.color = 'var(--teal)';
+    setTimeout(() => { el.style.borderColor = ''; el.style.color = ''; }, 1500);
+  });
+}
+
+function copyTextarea(btn) {
+  const textarea = btn.closest('.template-body').querySelector('textarea');
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+function clearTemplate(btn) {
+  btn.closest('.template-body').querySelector('textarea').value = '';
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
